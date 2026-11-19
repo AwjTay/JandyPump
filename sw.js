@@ -1,0 +1,38 @@
+// Offline support: cache the app shell, network-first so updates land quickly.
+// Bump VERSION when you change files to force a refresh.
+const VERSION = 'jandypump-v1';
+const SHELL = [
+  './', 'index.html', 'css/style.css', 'manifest.webmanifest',
+  'js/app.js', 'js/store.js', 'js/sync.js', 'js/chart.js', 'js/exercises.js',
+  'icons/icon-192.png', 'icons/icon-512.png',
+];
+
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys()
+    .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+    .then(() => self.clients.claim()));
+});
+
+self.addEventListener('fetch', e => {
+  const req = e.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.hostname === 'api.github.com' || url.hostname.endsWith('githubusercontent.com')) return; // never cache sync
+
+  const isFont = url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com');
+  if (url.origin !== location.origin && !isFont) return;
+
+  e.respondWith(
+    fetch(req).then(res => {
+      if (res.ok || res.type === 'opaque') {
+        const copy = res.clone();
+        caches.open(VERSION).then(c => c.put(req, copy));
+      }
+      return res;
+    }).catch(() => caches.match(req, { ignoreSearch: true }).then(r => r || caches.match('index.html')))
+  );
+});
