@@ -299,6 +299,13 @@ code { color: var(--gold); }
 .belt { font: 400 12px var(--head); color: var(--gold); text-shadow: 0 0 10px var(--gold); animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .55; } }
 
+/* ---------- sync status ---------- */
+.sync-status { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 6px; }
+.sync-status div { border: 1px solid var(--panel-edge); border-radius: 10px; padding: 8px 10px; }
+.sync-status span { display: block; font: 400 10px var(--head); letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.sync-status b { font-size: 16px; color: var(--cyan); word-break: break-all; }
+.sync-error { color: var(--red); background: rgba(255, 56, 100, .1); border: 1px solid rgba(255, 56, 100, .4); border-radius: 10px; padding: 8px 10px; font-weight: 600; margin: 8px 0; }
+
 /* ---------- bottom tabs ---------- */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;

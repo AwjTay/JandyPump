@@ -515,7 +515,14 @@ function renderSettings() {
           <button class="btn btn-sun grow" type="button" data-action="gist-create">Create sync gist</button>
         </div>
       </form>
-      <p class="muted sm">${p.lastSync ? 'Last synced ' + fmtDateTime(p.lastSync) : 'Not synced yet.'}</p>
+      <div class="sync-status">
+        <div><span>Gist</span><b>${p.gistId ? esc(p.gistId.slice(0, 8)) + '…' : 'not set'}</b></div>
+        <div><span>This phone</span><b>${store.sessions().length} sessions</b></div>
+        <div><span>In the cloud</span><b>${p.lastSync ? (p.cloudSessions ?? '?') + ' sessions' : '—'}</b></div>
+        <div><span>Last synced</span><b>${p.lastSync ? esc(fmtDateTime(p.lastSync)) : 'never'}</b></div>
+      </div>
+      ${p.lastError ? `<p class="sync-error">⚠ ${esc(p.lastError)}</p>` : ''}
+      <p class="muted sm">Both phones must show the <b>same Gist ID</b>. Only tap <b>Create sync gist</b> on one phone.</p>
     </section>
     <section class="card">
       <h3>Backup</h3>
@@ -533,7 +540,7 @@ function renderSettings() {
       <button class="btn btn-ghost danger" data-action="wipe">Clear data on this phone</button>
       <p class="muted sm">Only clears this device. If sync is on, data comes back on next sync.</p>
     </section>
-    <p class="muted center sm">JandyPump v1 · ${store.sessions().length} sessions logged</p>`;
+    <p class="muted center sm">JandyPump v2 · ${store.sessions().length} sessions logged</p>`;
 }
 
 // ---------- exercise picker modal ----------
@@ -575,9 +582,11 @@ async function doSync(manual) {
   try {
     const r = await sync();
     btn.dataset.state = r.offline ? 'off' : 'ok';
-    if (manual) toast(r.offline ? 'Offline — will sync later' : 'Synced ✓');
-    // Re-render unless the user is typing in the log
-    if (!(view === 'log' && store.getDraft()) && view !== 'settings') render();
+    if (manual) toast(r.offline ? 'Offline — will sync later'
+      : r.pulled ? `Synced ✓ ${r.pulled} new session${r.pulled > 1 ? 's' : ''} from the other phone` : 'Synced ✓ All up to date');
+    // Re-render with fresh data unless someone is mid-typing
+    const typing = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+    if (!typing) render();
   } catch (e) {
     btn.dataset.state = 'err';
     if (manual) toast(e.message);
