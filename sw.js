@@ -1,6 +1,6 @@
 // Offline support: cache the app shell, network-first so updates land quickly.
 // Bump VERSION when you change files to force a refresh.
-const VERSION = 'jandypump-v1';
+const VERSION = 'jandypump-v2';
 const SHELL = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
   'js/app.js', 'js/store.js', 'js/sync.js', 'js/chart.js', 'js/exercises.js',
